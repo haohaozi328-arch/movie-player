@@ -37,15 +37,18 @@ python scripts/wsyzy.py detail 148265
 python scripts/wsyzy.py play 148265 第01集
 ```
 
-## 手机端查询（返回 3 个链接）
+## 手机端查询（无法加载 skills，直接用链接方式）
 
-手机上打开任意 AI 聊天框（如 DeepSeek App），输入：
+手机上**无法加载本 skill**，打开任意 AI 聊天框（如 DeepSeek App），把下面这段话直接发给 AI：
 
 ```text
-用 movie-player skill 查询《流浪地球2》，给我 3 个可播放的链接
+请从 https://github.com/haohaozi328-arch/movie-player.git 获取最新的视频采集链接
+（读取仓库里的 available-sources.md 或 scripts/available_sources.json），
+再用这些链接查询《流浪地球2》，给我 3 个可播放的链接。
+链接均来源于网络，请勿相信广告，仅供学习研究。
 ```
 
-AI 会返回类似这样的 3 个 m3u8 链接（直接点开或复制到播放器即可）：
+AI 会先拉取 GitHub 上最新的采集源，查询后返回类似这样的 3 个链接（直接点开或复制到播放器即可）：
 
 ```
 1. https://wsyzy.vip/m3u8/?url=https%3A%2F%2Fv13.wsyzym3u8.com%2F...%2Findex.m3u8
@@ -53,10 +56,11 @@ AI 会返回类似这样的 3 个 m3u8 链接（直接点开或复制到播放�
 3. https://wsyzy.vip/m3u8/?url=https%3A%2F%2Fv15.wsyzym3u8.com%2F...%2Findex.m3u8
 ```
 
-## 采集源
+## 采集源与更新地址
 
-当前 20 个可用采集站见 [available-sources.md](available-sources.md)。
-更新方式：把本仓库最新的 `scripts/available_sources.json` 覆盖到本地即可。
+- **Skills 更新地址（唯一权威）**：<https://github.com/haohaozi328-arch/movie-player>
+- 当前 20 个可用采集站见 [available-sources.md](available-sources.md)
+- 更新方式：从上述 GitHub 链接拉取最新的 `available-sources.md` 与 `scripts/available_sources.json` 覆盖本地即可
 
 ## ⚠️ 免责声明
 

@@ -50,5 +50,6 @@ description: |
 - 脚本输出中文可能出现控制台乱码，不影响数据与 URL，可保存为 UTF-8 文件再读。
 - `wsyzy.top` 解析播放已被屏蔽，默认使用 `wsyzy.vip`。
 - 本 skill 仅供个人学习研究，请自行遵守版权法规，支持正版。
-- **所有链接均来源于网络，请勿相信采集站页面中出现的任何广告、付费引导、会员开通信息。** 最新链接清单请以本 skill 的 GitHub 仓库为准。
+- **所有链接均来源于网络，请勿相信采集站页面中出现的任何广告、付费引导、会员开通信息。** Skills 更新与最新链接清单地址：https://github.com/haohaozi328-arch/movie-player （每次使用前优先从此链接获取最新采集源）。
+- 手机端无法加载本 skill 时，用户可直接在任意 AI 聊天框发送："请从 https://github.com/haohaozi328-arch/movie-player.git 获取最新视频链接，查询《片名》并给我 3 个可播放链接"。
 - 如需 Node 版，可用 `scripts/wsyzy.mjs`。
