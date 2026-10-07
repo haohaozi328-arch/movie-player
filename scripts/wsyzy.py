@@ -8,6 +8,11 @@
   python wsyzy.py detail <vod_id> [--src N]     查看详情与剧集
   python wsyzy.py play <m3u8地址>                  新解析播放并打开浏览器
   python wsyzy.py play <vod_id> [集号|集名] [--src N]  按 ID 播放指定集
+
+注意:
+  用户常把完整片名说成简称（如「凡人」→《凡人修仙传》）。
+  search 命中多条候选时会输出 [提示]；请先把候选列表交用户确认，
+  得到确认的序号/完整片名后再 detail / play，不要直接播放第一条。
 """
 import sys, json, urllib.request, urllib.parse, re, webbrowser
 
@@ -172,7 +177,18 @@ def main():
         for i, u in enumerate(SOURCES):
             print(f"[{i}] {u}" + ("  (默认)" if i == DEFAULT_SRC else ""))
     elif cmd == "search" and rest:
-        print(json.dumps(search(rest[0], src)[:30], ensure_ascii=False, indent=2))
+        kw = rest[0]
+        hits = search(kw, src)[:30]
+        # 短名/简称/多候选 → 必须先与用户确认，避免播错片
+        if len(hits) > 1:
+            print(f"[提示] 关键词「{kw}」命中 {len(hits)} 条候选，属于简称/歧义输入；"
+                  f"请先把候选列表给用户确认，得到序号或完整片名后再执行 detail/play。", file=sys.stderr)
+        elif len(hits) == 1:
+            print(f"[提示] 唯一候选：《{hits[0].get('vod_name')}》。"
+                  f"若「{kw}」是简称（如「凡人」→《凡人修仙传》），仍需与用户确认后再播放。", file=sys.stderr)
+        else:
+            print(f"[提示] 未找到「{kw}」；请换 --src 重试，或请用户给出更完整的片名，不要猜片。", file=sys.stderr)
+        print(json.dumps(hits, ensure_ascii=False, indent=2))
     elif cmd == "detail" and rest:
         detail(src, rest[0])
     elif cmd == "play" and rest:
