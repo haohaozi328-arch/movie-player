@@ -19,7 +19,7 @@
 并把 SKILL.md、available-sources.md 以及 scripts/ 目录安装到你的 skills 目录下的 movie-player/ 文件夹。
 安装完成后运行 python scripts/wsyzy.py sources 验证可用。
 之后用户说想看什么电影/剧/综艺/动漫，就使用这个 movie-player skill。
-每次更新采集链接时，重新从该 GitHub 仓库拉取最新的 available-sources.md 与 scripts/available_sources.json 即可。
+采集链接无需每次拉取最新，由你自行判断：仅当搜索/播放失败、源大面积不可用时，才去该仓库取最新采集源。
 ```
 
 手动安装：
@@ -55,9 +55,9 @@ python scripts/wsyzy.py play 148265 第01集
 
 ## 采集源与更新地址
 
-- **Skills 更新地址（唯一权威）**：<https://github.com/haohaozi328-arch/movie-player>
+- **备用更新地址**：<https://github.com/haohaozi328-arch/movie-player>
 - 当前 20 个可用采集站见 [available-sources.md](available-sources.md)
-- 更新方式：从上述 GitHub 链接拉取最新的 `available-sources.md` 与 `scripts/available_sources.json` 覆盖本地即可
+- **无需每次使用前拉取最新清单**，由 AI 自行判断：仅当搜索/播放失败、源大面积不可用、或用户主动要求更新时，才从上述地址取最新的 `available-sources.md` 与 `scripts/available_sources.json`
 
 ## ⚠️ 免责声明
 

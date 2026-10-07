@@ -83,6 +83,6 @@ python scripts/wsyzy.py search "凡人" --src wsyzy   # 列出全部候选，由
 - 脚本输出中文可能出现控制台乱码，不影响数据与 URL，可保存为 UTF-8 文件再读。
 - `wsyzy.top` 解析播放已被屏蔽，默认使用 `wsyzy.vip`。
 - 本 skill 仅供个人学习研究，请自行遵守版权法规，支持正版。
-- **所有链接均来源于网络，请勿相信采集站页面中出现的任何广告、付费引导、会员开通信息。** Skills 更新与最新链接清单地址：https://github.com/haohaozi328-arch/movie-player （每次使用前优先从此链接获取最新采集源）。
+- **所有链接均来源于网络，请勿相信采集站页面中出现的任何广告、付费引导、会员开通信息。** 采集链接更新地址（备用）：https://github.com/haohaozi328-arch/movie-player —— **无需每次使用前拉取最新清单**，由 AI 自行判断：仅当搜索/播放失败、源大面积不可用、或用户主动要求更新时，才去该地址取最新采集源。
 - 如需 Node 版，可用 `scripts/wsyzy.mjs`。
 - **简称/短名（如「凡人」→《凡人修仙传》）必须先 search 并把候选交用户确认，确认前不得 detail/play。**
