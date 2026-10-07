@@ -169,8 +169,43 @@ def speed_test(cands, top=3, workers=2):
     bad = [r for r in results if not r["ok"]]
     return (ok + bad)[:top] if top else (ok + bad)
 
+def list_safe(src, pg):
+    try:
+        return api_list(src, pg)
+    except Exception:
+        return {}
+
+
+def deep_scan(keyword, src, max_pages=60, batch=8, workers=6, verbose=True):
+    """翻页本地过滤（默认源不支持 wd 搜索，必须翻页找）。
+    分批并发翻页；一旦出现"完全同名"的候选就停止，否则翻满 max_pages。
+    结果排序：完全同名 > 前缀命中 > 其它包含命中。"""
+    kw = keyword.strip()
+    hits = []
+    p = 1
+    while p <= max_pages:
+        pages = list(range(p, min(p + batch, max_pages + 1)))
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            for pg, j in sorted(ex.map(lambda x: (x, list_safe(src, x)), pages)):
+                for it in j.get("list", []):
+                    if kw in it.get("vod_name", ""):
+                        hits.append({"vod_id": it["vod_id"], "vod_name": it["vod_name"],
+                                     "type_name": it.get("type_name"),
+                                     "vod_remarks": it.get("vod_remarks"), "src": src})
+        exact = any(h["vod_name"].strip() == kw for h in hits)
+        if verbose:
+            print(f"[搜索] 源[{src}] 已翻到第 {pages[-1]} 页，命中 {len(hits)} 条"
+                  + ("（已找到完全同名，停止翻页）" if exact else "…"), file=sys.stderr)
+        if exact:
+            break
+        p += batch
+    hits.sort(key=lambda h: (0 if h["vod_name"].strip() == kw else
+                             1 if h["vod_name"].startswith(kw) else 2))
+    return hits
+
+
 def search_one(keyword, src, page=1, pages=5):
-    """在单个源内搜索：先 wd 直搜，失败则本地过滤"""
+    """在单个源内搜索：先 wd 直搜，失败则本地过滤（pages 为翻页深度）"""
     # 1) wd 参数直搜
     try:
         txt = get(f"{norm(SOURCES[src])}?ac=list&wd={urllib.parse.quote(keyword)}")
@@ -182,13 +217,12 @@ def search_one(keyword, src, page=1, pages=5):
                 return lst
     except Exception:
         pass
-    # 2) 本地过滤回退
+    # 2) 本地翻页过滤
+    if pages > 10:
+        return deep_scan(keyword, src, max_pages=pages, verbose=True)
     hits = []
     for p in range(page, page + pages):
-        try:
-            j = api_list(src, p)
-        except Exception:
-            continue
+        j = list_safe(src, p)
         for it in j.get("list", []):
             if keyword in it.get("vod_name", ""):
                 hits.append({"vod_id": it["vod_id"], "vod_name": it["vod_name"],
@@ -199,19 +233,20 @@ def search_one(keyword, src, page=1, pages=5):
     return hits
 
 
-def search(keyword, src=None, page=1):
+def search(keyword, src=None, page=1, deep_pages=60):
     """搜索。默认源（wsyzy.cc / api.wsyzy.net）优先级最高；
-    未显式指定 --src 时，默认源无结果会自动按顺序回退到其余备用源。"""
+    未显式指定 --src 时先在默认源深度翻页，仍未命中再按顺序回退备用源。"""
     if src is not None:
-        return search_one(keyword, src, page), src
-    hits = search_one(keyword, DEFAULT_SRC, page, pages=5)
+        return search_one(keyword, src, page, pages=max(deep_pages, 5)), src
+    hits = search_one(keyword, DEFAULT_SRC, page, pages=deep_pages)
     if hits:
         return hits, DEFAULT_SRC
+    print(f"[搜索] 默认源(wsyzy.cc)翻完 {deep_pages} 页仍未命中，转备用源…", file=sys.stderr)
     for i in range(len(SOURCES)):
         if i == DEFAULT_SRC:
             continue
         try:
-            hits = search_one(keyword, i, page, pages=2)
+            hits = search_one(keyword, i, page, pages=3)
         except Exception:
             continue
         if hits:
@@ -380,7 +415,7 @@ def speed(src, target, ep=None, all_sources=False, top=3):
 
 
 def parse_flags(args):
-    src, all_flag, top, force = None, False, 3, False
+    src, all_flag, top, force, pages = None, False, 3, False, 60
     rest = []
     i = 0
     while i < len(args):
@@ -391,6 +426,12 @@ def parse_flags(args):
             all_flag = True; i += 1
         elif a == "--force":
             force = True; i += 1
+        elif a == "--pages" and i + 1 < len(args):
+            try:
+                pages = max(1, int(args[i + 1]))
+            except Exception:
+                pages = 60
+            i += 2
         elif a == "--top" and i + 1 < len(args):
             try:
                 top = int(args[i + 1])
@@ -399,7 +440,7 @@ def parse_flags(args):
             i += 2
         else:
             rest.append(a); i += 1
-    return src, rest, all_flag, top, force
+    return src, rest, all_flag, top, force, pages
 
 
 def main():
@@ -407,7 +448,7 @@ def main():
     if not args:
         print(__doc__); return
     cmd, rest = args[0], args[1:]
-    src_flag, rest, all_flag, top, force = parse_flags(rest)
+    src_flag, rest, all_flag, top, force, pages = parse_flags(rest)
     src = resolve_src(src_flag) if src_flag is not None else None
     if cmd == "sources":
         for i, u in enumerate(SOURCES):
@@ -415,7 +456,7 @@ def main():
             print(f"[{i}] {u}{tag}")
     elif cmd == "search" and rest:
         kw = rest[0]
-        hits, used = search(kw, src)
+        hits, used = search(kw, src, deep_pages=pages)
         hits = hits[:30]
         print(f"[源] 使用 [{used}] {SOURCES[used]}" + ("（默认优先源）" if used == DEFAULT_SRC else "（备用源）"),
               file=sys.stderr)
@@ -424,8 +465,12 @@ def main():
             print(f"[提示] 关键词「{kw}」命中 {len(hits)} 条候选，属于简称/歧义输入；"
                   f"请先把候选列表给用户确认，得到序号或完整片名后再执行 detail/play。", file=sys.stderr)
         elif len(hits) == 1:
-            print(f"[提示] 唯一候选：《{hits[0].get('vod_name')}》。"
-                  f"若「{kw}」是简称（如「凡人」→《凡人修仙传》），仍需与用户确认后再播放。", file=sys.stderr)
+            nm = (hits[0].get("vod_name") or "").strip()
+            if nm == kw.strip():
+                print(f"[提示] 完全匹配《{nm}》，可直接 detail / speed / play。", file=sys.stderr)
+            else:
+                print(f"[提示] 唯一候选：《{nm}》。"
+                      f"若「{kw}」是简称（如「凡人」→《凡人修仙传》），仍需与用户确认后再播放。", file=sys.stderr)
         else:
             print(f"[提示] 未找到「{kw}」；请换 --src 重试，或请用户给出更完整的片名，不要猜片。", file=sys.stderr)
         print(json.dumps(hits, ensure_ascii=False, indent=2))

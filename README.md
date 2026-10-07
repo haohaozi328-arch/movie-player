@@ -6,6 +6,7 @@
 ## 功能
 
 - 🥇 **默认源优先**：先查 wsyzy.cc，无结果才自动回退到备用源
+- 📚 **翻页深度搜索**：默认源接口不支持 `?wd=` 关键字搜索，改为并发翻页过滤（`--pages`，默认 60 页），命中完全同名即停
 - ⭐ **优先站点**：命中配置作品（如《凡人修仙传》）时先打开指定播放页，由用户确认后再决定是否走采集站
 - ⚡ **速度自判**：`speed` 实测各线路速度后推荐最快的一条，同一时刻最多测 2 路、只打开 1 个播放页
 - 🔍 **多源搜索**：接入 20 个在线采集接口（Apple CMS），按片名搜索
@@ -38,6 +39,7 @@ python scripts/wsyzy.py sources
 
 ```bash
 python scripts/wsyzy.py search "你好，李焕英" --src 7
+python scripts/wsyzy.py search "仙逆" --pages 60      # 默认源不支持关键字搜索 → 并发翻页过滤
 python scripts/wsyzy.py detail 148265
 python scripts/wsyzy.py speed 148265 第01集        # 实测速度，挑最快
 python scripts/wsyzy.py play 148265 第01集

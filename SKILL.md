@@ -50,7 +50,7 @@ description: |
 | 采集接口 JSON | `https://api.wsyzy.net/api.php/provide/vod/?ac=list` | 可用，返回 Apple CMS 列表 |
 | 采集接口 XML | `https://api.wsyzy.net/api.php/provide/vod/from/wsym3u8/at/xml` | 可用（无搜索） |
 | 详情（含播放地址） | `https://api.wsyzy.net/api.php/provide/vod/?ac=detail&ids=<vod_id>` | 可用 |
-| 搜索 `?ac=list&wd=` | `https://api.wsyzy.net/api.php/...` | ❌ 大多数源返回"暂不支持搜索"，脚本自动回退为本地过滤 |
+| 搜索 `?ac=list&wd=` | `https://api.wsyzy.net/api.php/...` | ❌ 返回"暂不支持搜索" → 脚本改为**并发翻页本地过滤**（`--pages`，默认 60 页） |
 | 站内搜索 | `https://wsyzy.cc/index.php/vod/search.html?wd=<关键词>` | 有验证码拦截 |
 | 播放页 | `https://wsyzy.cc/index.php/vod/detail/id/<vod_id>/p/1/nid/1/from/wsym3u8.html` | 可获取真实 m3u8 |
 | 接口事实表见 | [available-sources.md](available-sources.md) | 20 个精选采集源，含免责声明 |
@@ -62,10 +62,15 @@ description: |
 1. **查看源**：`python scripts/wsyzy.py sources` 列出全部采集站（`[0]` 为默认源 wsyzy.cc，优先级最高；其余为备用）。
 2. **搜索**：先问用户想看什么。
    ```bash
-   python scripts/wsyzy.py search "<关键词>" [--src N或域名]
+   python scripts/wsyzy.py search "<关键词>" [--src N或域名] [--pages 60]
    ```
-   不加 `--src` 时自动"默认源优先、无结果再回退备用源"。展示候选（vod_id、名称、类型、备注）让用户挑。
-   关键词为**短名/简称**时必须先与用户确认，见下一节。
+   - 采集接口**不支持关键字搜索**（`?wd=` 返回"暂不支持搜索"），所以默认源改为**并发翻页本地过滤**：
+     默认翻 60 页（约 1200 条），一旦命中"完全同名"立即停止；命中结果按
+     「完全同名 > 前缀 > 其它包含」排序。
+   - 默认源翻完仍无结果 → 自动按顺序回退备用源（每个源 3 页），并打印用的是哪个源。
+   - 翻页深度可调：`--pages 120`（更全但更慢）、`--pages 20`（更快但可能漏）。
+     实测《仙逆》在同一默认源内约第 15 页命中，之前只翻 5 页所以误判为"没有"。
+   - 展示候选（vod_id、名称、类型、备注）让用户挑。关键词为**短名/简称**时必须先与用户确认。
 3. **详情/剧集**：
    ```bash
    python scripts/wsyzy.py detail <vod_id> [--src N]
