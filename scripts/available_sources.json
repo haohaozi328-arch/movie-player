@@ -1,4 +1,5 @@
 [
+  "https://api.wsyzy.net/api.php/provide/vod/",
   "http://hongniuzy2.com/api.php/provide/vod/",
   "https://360zy.com/api.php/provide/vod/",
   "https://api.apibdzy.com/api.php/provide/vod",
@@ -17,6 +18,5 @@
   "https://mtzy5.com/api.php/provide/vod/",
   "https://subocj.com/api.php/provide/vod/",
   "https://tyyszyapi.com/api.php/provide/vod/",
-  "https://www.mdzyapi.com/api.php/provide/vod/",
-  "https://api.wsyzy.net/api.php/provide/vod/"
+  "https://www.mdzyapi.com/api.php/provide/vod/"
 ]

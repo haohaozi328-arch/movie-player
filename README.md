@@ -1,9 +1,11 @@
 # movie-player · vip影视动漫查询播放 Skill
 
 > 对话式点播：用户说想看什么，AI 调用本 skill 搜片 → 列集数 → 用新解析地址打开浏览器播放 m3u8。
+> **默认源：<https://wsyzy.cc/>（优先级最高）**，其余采集站为备用。
 
 ## 功能
 
+- 🥇 **默认源优先**：先查 wsyzy.cc，无结果才自动回退到备用源
 - 🔍 **多源搜索**：接入 20 个在线采集接口（Apple CMS），按片名搜索
 - 📄 **详情/剧集**：返回作品名、类型、更新状态与全集列表
 - ▶️ **浏览器播放**：自动包装 `https://wsyzy.vip/m3u8/?url=` 打开系统浏览器
@@ -55,6 +57,9 @@ python scripts/wsyzy.py play 148265 第01集
 
 ## 采集源与更新地址
 
+- **默认源（最高优先级）**：<https://wsyzy.cc/> → 采集接口 `https://api.wsyzy.net/api.php/provide/vod/`
+  - 搜索时先查该源；没有结果才按顺序回退到备用源
+  - `python scripts/wsyzy.py sources` 中 `[0]` 即该默认源
 - **备用更新地址**：<https://github.com/haohaozi328-arch/movie-player>
 - 当前 20 个可用采集站见 [available-sources.md](available-sources.md)
 - **无需每次使用前拉取最新清单**，由 AI 自行判断：仅当搜索/播放失败、源大面积不可用、或用户主动要求更新时，才从上述地址取最新的 `available-sources.md` 与 `scripts/available_sources.json`

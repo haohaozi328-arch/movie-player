@@ -10,38 +10,42 @@
 
 ## 源列表
 
-| # | 采集接口 |
-|---|---------|
-| 0 | http://hongniuzy2.com/api.php/provide/vod/ |
-| 1 | https://360zy.com/api.php/provide/vod/ |
-| 2 | https://api.apibdzy.com/api.php/provide/vod |
-| 3 | https://api.guangsuapi.com/api.php/provide/vod/ |
-| 4 | https://api.maoyanapi.top/api.php/provide/vod |
-| 5 | https://api.niuniuzy.me/api.php/provide/vod/ |
-| 6 | https://api.wujinapi.me/api.php/provide/vod/ |
-| 7 | https://bfzyapi.com/api.php/provide/vod/ |
-| 8 | https://cj.yayazy.net/api.php/provide/vod/ |
-| 9 | https://dbzy.tv/api.php/provide/vod/ |
-| 10 | https://ffzy5.tv/api.php/provide/vod/ |
-| 11 | https://haohuazy.com/api.php/provide/vod/ |
-| 12 | https://huyazy.net/api.php/provide/vod/ |
-| 13 | https://jszyapi.com/api.php/provide/vod/ |
-| 14 | https://m3u8.apiyhzy.com/api.php/provide/vod |
-| 15 | https://mtzy5.com/api.php/provide/vod/ |
-| 16 | https://subocj.com/api.php/provide/vod/ |
-| 17 | https://tyyszyapi.com/api.php/provide/vod/ |
-| 18 | https://www.mdzyapi.com/api.php/provide/vod/ |
-| 19 | https://api.wsyzy.net/api.php/provide/vod/ （默认源） |
+> `[0]` 为**默认源（最高优先级）**：站点 <https://wsyzy.cc/>，采集接口 api.wsyzy.net。
+> 搜索时先查该源，无结果才按顺序回退到下列备用源。
+
+| # | 采集接口 | 角色 |
+|---|---------|------|
+| 0 | https://api.wsyzy.net/api.php/provide/vod/ | ⭐ 默认源（站点 wsyzy.cc） |
+| 1 | http://hongniuzy2.com/api.php/provide/vod/ | 备用 |
+| 2 | https://360zy.com/api.php/provide/vod/ | 备用 |
+| 3 | https://api.apibdzy.com/api.php/provide/vod | 备用 |
+| 4 | https://api.guangsuapi.com/api.php/provide/vod/ | 备用 |
+| 5 | https://api.maoyanapi.top/api.php/provide/vod | 备用 |
+| 6 | https://api.niuniuzy.me/api.php/provide/vod/ | 备用 |
+| 7 | https://api.wujinapi.me/api.php/provide/vod/ | 备用 |
+| 8 | https://bfzyapi.com/api.php/provide/vod/ | 备用 |
+| 9 | https://cj.yayazy.net/api.php/provide/vod/ | 备用 |
+| 10 | https://dbzy.tv/api.php/provide/vod/ | 备用 |
+| 11 | https://ffzy5.tv/api.php/provide/vod/ | 备用 |
+| 12 | https://haohuazy.com/api.php/provide/vod/ | 备用 |
+| 13 | https://huyazy.net/api.php/provide/vod/ | 备用 |
+| 14 | https://jszyapi.com/api.php/provide/vod/ | 备用 |
+| 15 | https://m3u8.apiyhzy.com/api.php/provide/vod | 备用 |
+| 16 | https://mtzy5.com/api.php/provide/vod/ | 备用 |
+| 17 | https://subocj.com/api.php/provide/vod/ | 备用 |
+| 18 | https://tyyszyapi.com/api.php/provide/vod/ | 备用 |
+| 19 | https://www.mdzyapi.com/api.php/provide/vod/ | 备用 |
 
 ## 更新方式
 
 1. 打开本技能的 GitHub 仓库页面，获取最新的采集源列表。
-2. 将新列表中 URL 填入 `scripts/available_sources.json`。
+2. 将新列表中 URL 填入 `scripts/available_sources.json`（保持默认源在数组第 1 位）。
 3. 运行 `python scripts/wsyzy.py sources` 校验编号是否正确。
 
 ## 使用
 
 ```bash
-python scripts/wsyzy.py search "关键词" --src 7
-python scripts/wsyzy.py play <vod_id> 第01集 --src wsyzy
+python scripts/wsyzy.py search "关键词"          # 默认源优先，自动回退备用源
+python scripts/wsyzy.py search "关键词" --src 8  # 指定备用源
+python scripts/wsyzy.py play <vod_id> 第01集
 ```

@@ -18,8 +18,13 @@ import sys, json, urllib.request, urllib.parse, re, webbrowser
 
 PARSER = "https://wsyzy.vip/m3u8/?url="  # 新解析播放;旧的 wsyzy.top 已不可用
 
-# 可用采集接口（20 个精选）
+# 默认源（最高优先级）：https://wsyzy.cc/  →  采集接口 api.wsyzy.net
+SITE = "https://wsyzy.cc/"
+DEFAULT_API = "https://api.wsyzy.net/api.php/provide/vod/"
+
+# 可用采集接口（20 个精选；[0] 为默认优先源，其余为备用）
 SOURCES = [
+    DEFAULT_API,
     "http://hongniuzy2.com/api.php/provide/vod/",
     "https://360zy.com/api.php/provide/vod/",
     "https://api.apibdzy.com/api.php/provide/vod",
@@ -39,10 +44,9 @@ SOURCES = [
     "https://subocj.com/api.php/provide/vod/",
     "https://tyyszyapi.com/api.php/provide/vod/",
     "https://www.mdzyapi.com/api.php/provide/vod/",
-    "https://api.wsyzy.net/api.php/provide/vod/",
 ]
-DEFAULT_SRC = len(SOURCES) - 1  # wsyzy
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+DEFAULT_SRC = 0  # wsyzy.cc / api.wsyzy.net 优先级最高
+HEADERS = {"User-Agent": "Mozilla/5.0", "Referer": SITE}
 
 
 def norm(u: str) -> str:
@@ -88,19 +92,22 @@ def parse_play_urls(vod: dict):
     return out
 
 
-def search(keyword, src, page=1):
+def search_one(keyword, src, page=1, pages=5):
+    """在单个源内搜索：先 wd 直搜，失败则本地过滤"""
     # 1) wd 参数直搜
     try:
         txt = get(f"{norm(SOURCES[src])}?ac=list&wd={urllib.parse.quote(keyword)}")
         if txt.strip().startswith("{"):
             lst = json.loads(txt).get("list") or []
             if lst:
+                for it in lst:
+                    it.setdefault("src", src)
                 return lst
     except Exception:
         pass
     # 2) 本地过滤回退
     hits = []
-    for p in range(page, page + 5):
+    for p in range(page, page + pages):
         try:
             j = api_list(src, p)
         except Exception:
@@ -113,6 +120,26 @@ def search(keyword, src, page=1):
         if len(hits) >= 20:
             break
     return hits
+
+
+def search(keyword, src=None, page=1):
+    """搜索。默认源（wsyzy.cc / api.wsyzy.net）优先级最高；
+    未显式指定 --src 时，默认源无结果会自动按顺序回退到其余备用源。"""
+    if src is not None:
+        return search_one(keyword, src, page), src
+    hits = search_one(keyword, DEFAULT_SRC, page, pages=5)
+    if hits:
+        return hits, DEFAULT_SRC
+    for i in range(len(SOURCES)):
+        if i == DEFAULT_SRC:
+            continue
+        try:
+            hits = search_one(keyword, i, page, pages=2)
+        except Exception:
+            continue
+        if hits:
+            return hits, i
+    return [], DEFAULT_SRC
 
 
 def detail(src, vod_id):
@@ -172,13 +199,17 @@ def main():
         print(__doc__); return
     cmd, rest = args[0], args[1:]
     src_flag, rest = parse_flags(rest)
-    src = resolve_src(src_flag)
+    src = resolve_src(src_flag) if src_flag is not None else None
     if cmd == "sources":
         for i, u in enumerate(SOURCES):
-            print(f"[{i}] {u}" + ("  (默认)" if i == DEFAULT_SRC else ""))
+            tag = "  (默认源，最高优先级 wsyzy.cc)" if i == DEFAULT_SRC else ""
+            print(f"[{i}] {u}{tag}")
     elif cmd == "search" and rest:
         kw = rest[0]
-        hits = search(kw, src)[:30]
+        hits, used = search(kw, src)
+        hits = hits[:30]
+        print(f"[源] 使用 [{used}] {SOURCES[used]}" + ("（默认优先源）" if used == DEFAULT_SRC else "（备用源）"),
+              file=sys.stderr)
         # 短名/简称/多候选 → 必须先与用户确认，避免播错片
         if len(hits) > 1:
             print(f"[提示] 关键词「{kw}」命中 {len(hits)} 条候选，属于简称/歧义输入；"
@@ -190,9 +221,9 @@ def main():
             print(f"[提示] 未找到「{kw}」；请换 --src 重试，或请用户给出更完整的片名，不要猜片。", file=sys.stderr)
         print(json.dumps(hits, ensure_ascii=False, indent=2))
     elif cmd == "detail" and rest:
-        detail(src, rest[0])
+        detail(src if src is not None else DEFAULT_SRC, rest[0])
     elif cmd == "play" and rest:
-        play(src, rest[0], rest[1] if len(rest) > 1 else None)
+        play(src if src is not None else DEFAULT_SRC, rest[0], rest[1] if len(rest) > 1 else None)
     else:
         print(__doc__)
 

@@ -9,6 +9,14 @@ description: |
 
 当用户说想看什么电影/剧/综艺/动漫，或给出影视名字、想在线播放时，使用本 skill。
 
+## 默认源（最高优先级）
+
+**默认源：<https://wsyzy.cc/>（采集接口 `https://api.wsyzy.net/api.php/provide/vod/`），优先级最高。**
+
+- 搜索时**先查 wsyzy.cc（api.wsyzy.net）**；只有它没有结果时，才自动按顺序回退到其余备用源。
+- 播放解析统一使用 `https://wsyzy.vip/m3u8/?url=`（旧 `wsyzy.top` 已屏蔽）。
+- 单独指定备用源：`--src N或域名`（`python scripts/wsyzy.py sources` 查看编号）。
+
 ## 接口事实（已实测）
 
 | 用途 | 地址 | 状态 |
@@ -25,12 +33,12 @@ description: |
 
 ## 工作流
 
-1. **查看源**：`python scripts/wsyzy.py sources` 列出 20 个精选采集站（默认源 wsyzy）。
+1. **查看源**：`python scripts/wsyzy.py sources` 列出全部采集站（`[0]` 为默认源 wsyzy.cc，优先级最高；其余为备用）。
 2. **搜索**：先问用户想看什么。
    ```bash
    python scripts/wsyzy.py search "<关键词>" [--src N或域名]
    ```
-   展示候选（vod_id、名称、类型、备注）让用户挑；搜不到换 `--src` 切源再试。
+   不加 `--src` 时自动"默认源优先、无结果再回退备用源"。展示候选（vod_id、名称、类型、备注）让用户挑。
    关键词为**短名/简称**时必须先与用户确认，见下一节。
 3. **详情/剧集**：
    ```bash
