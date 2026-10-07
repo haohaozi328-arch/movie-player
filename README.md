@@ -1,4 +1,4 @@
-# movie-player · 无水印影视查询播放 Skill
+# movie-player · vip影视动漫查询播放 Skill
 
 > 对话式点播：用户说想看什么，AI 调用本 skill 搜片 → 列集数 → 用新解析地址打开浏览器播放 m3u8。
 
