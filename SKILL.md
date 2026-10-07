@@ -17,6 +17,32 @@ description: |
 - 播放解析统一使用 `https://wsyzy.vip/m3u8/?url=`（旧 `wsyzy.top` 已屏蔽）。
 - 单独指定备用源：`--src N或域名`（`python scripts/wsyzy.py sources` 查看编号）。
 
+## 优先站点（先让用户确认）
+
+部分作品配置了**优先播放页**，命中时**先用浏览器打开该页面让用户确认**，确认没有要看的再走采集站。
+
+| 作品 | 优先播放页 |
+|------|-----------|
+| 凡人修仙传 | <https://www.4kvms.org/play/cgzq7f67f> |
+
+流程：
+
+1. 用户确认作品后，先查优先站点：
+   ```bash
+   python scripts/wsyzy.py prefer "凡人修仙传"
+   ```
+   命中则自动打开该播放页，并提示"先看看有没有你要的"。
+2. 询问用户：这个页面里有没有你要看的？
+   - **有** → 停在该页面，不再走采集站。
+   - **没有** → 使用采集站解析播放：
+     ```bash
+     python scripts/wsyzy.py play <vod_id> [集] --force
+     ```
+     （默认源 wsyzy.cc 优先，无结果才回退备用源）
+3. `play <vod_id>` 命中优先站点时也会**自动先打开优先页**，只有加 `--force` 才直接用采集站，避免播错或不必要的跳转。
+
+新增优先站点：在 `scripts/wsyzy.py` 的 `PREFERRED` 字典中加一条即可。
+
 ## 接口事实（已实测）
 
 | 用途 | 地址 | 状态 |
@@ -46,18 +72,36 @@ description: |
    ```
 4. **播放**：
    ```bash
-   python scripts/wsyzy.py play <vod_id> <集号或集名> [--src N]
+   python scripts/wsyzy.py speed <vod_id> <集号>        # 先实测速度，挑最快的一条
+   python scripts/wsyzy.py play <vod_id> <集号或集名> [--src N] [--force]
    ```
    或直接给 m3u8：
    ```bash
    python scripts/wsyzy.py play "https://v13.wsyzym3u8.com/.../index.m3u8"
    ```
    脚本会用 `https://wsyzy.vip/m3u8/?url=` 包装后 `webbrowser.open()` 打开系统浏览器播放。
+   **同时最多测 2 个候选、只打开 1 个播放页**，不要同时打开很多个视频。
 
-## 短名 / 简称：必须先查询并确认（强制）
+## 播放速度自判（AI 自行比较，不要多开）
+
+不猜"哪个源快"，直接用 `speed` 实测后挑最快的一条：
+
+```bash
+python scripts/wsyzy.py speed <vod_id> <集号>            # 在默认源内比较线路
+python scripts/wsyzy.py speed <关键词> --all --top 3     # 跨采集站比较同一集
+```
+
+- 实测内容：播放列表可达性 + 首分片下载速度（KB/s）与延迟（ms）。
+- **并发上限 2**：一次最多同时拉 2 路，避免同时播放很多个视频把带宽/内存打满。
+- 输出按速度排序，并给出 `[推荐]` + `[解析播放]` 链接；**只打开这一个链接**。
+- 推荐链接慢或打不开时，再换下一个候选，或 `--src` 换源重测。
+
+
 
 用户经常把完整剧名说成简称，例如把**《凡人修仙传》说成「凡人」**、把《斗罗大陆》说成「斗罗」、
 把《盗墓笔记》说成「盗墓」等。这类输入**不能直接 detail / play**，否则极易播错片子。
+
+> 注意：《凡人修仙传》除简称确认外，还要走上面的**优先站点**流程（先打开 4kvms 播放页确认）。
 
 **规则**：
 

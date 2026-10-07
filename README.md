@@ -6,6 +6,8 @@
 ## 功能
 
 - 🥇 **默认源优先**：先查 wsyzy.cc，无结果才自动回退到备用源
+- ⭐ **优先站点**：命中配置作品（如《凡人修仙传》）时先打开指定播放页，由用户确认后再决定是否走采集站
+- ⚡ **速度自判**：`speed` 实测各线路速度后推荐最快的一条，同一时刻最多测 2 路、只打开 1 个播放页
 - 🔍 **多源搜索**：接入 20 个在线采集接口（Apple CMS），按片名搜索
 - 📄 **详情/剧集**：返回作品名、类型、更新状态与全集列表
 - ▶️ **浏览器播放**：自动包装 `https://wsyzy.vip/m3u8/?url=` 打开系统浏览器
@@ -37,8 +39,32 @@ python scripts/wsyzy.py sources
 ```bash
 python scripts/wsyzy.py search "你好，李焕英" --src 7
 python scripts/wsyzy.py detail 148265
+python scripts/wsyzy.py speed 148265 第01集        # 实测速度，挑最快
 python scripts/wsyzy.py play 148265 第01集
 ```
+
+## 优先站点（先让用户确认）
+
+已配置优先播放页的作品，**先用浏览器打开该页面让用户确认有没有要看的**；确认没有，才用采集站解析播放。
+
+| 作品 | 优先播放页 |
+|------|-----------|
+| 凡人修仙传 | <https://www.4kvms.org/play/cgzq7f67f> |
+
+```bash
+python scripts/wsyzy.py prefer "凡人修仙传"          # 打开优先播放页，请用户确认
+python scripts/wsyzy.py play <vod_id> 第01集 --force  # 确认没有 → 用采集站播放
+```
+
+## 播放速度自判（不多开视频）
+
+```bash
+python scripts/wsyzy.py speed <vod_id> 第01集         # 默认源内比较线路
+python scripts/wsyzy.py speed <关键词> --all --top 3  # 跨采集站比较同一集
+```
+
+实测播放列表可达性 + 首分片速度（KB/s）与延迟（ms），按速度排序给出 `[推荐]` 链接。
+**并发上限 2、只打开 1 个播放页**，不会同时播放很多个视频。
 
 ## 简称 / 短名必须先确认
 
